@@ -8,10 +8,7 @@ def Controller(name):
 
             def dispatch(self, request, *args, **kwargs):
                 method = request.method.lower()
-                print(method)
                 handler = getattr(self, method, self.http_method_not_allowed)
-                print(handler)
-                print(Wrapper.__dict__)
                 return handler(request, *args, **kwargs)
 
             def http_method_not_allowed(self, request, *args, **kwargs):
@@ -19,16 +16,21 @@ def Controller(name):
 
         Wrapper.__name__ = cls.__name__
         Wrapper.__module__ = cls.__module__
-        print(Wrapper.__name__)
         all_methods_dir = [
             method
             for method in dir(cls)
             if callable(getattr(cls, method)) and not method.startswith("__")
         ]
-        print("Methods using dir():", all_methods_dir)
+        http_methods_mapping = {
+            "get": "get",
+            "create": "post",
+            "update": "put",
+            "delete": "delete",
+        }
         for method in all_methods_dir:
-            if method.startswith("get"):
-                setattr(Wrapper, "get", getattr(cls, method))
+            for prefix, http_method in http_methods_mapping.items():
+                if method.startswith(prefix):
+                    setattr(Wrapper, http_method, getattr(cls, method))
 
         return type(name, (Wrapper,), dict(cls.__dict__))
 
@@ -37,11 +39,7 @@ def Controller(name):
 
 def Get():
     def decorator(f):
-        f.__name__ = "get"
-        print(f.__name__)
-
         def get(self, request, *args, **kwargs):
-
             return JsonResponse({"data": f(self, request, *args, **kwargs)})
 
         return get
