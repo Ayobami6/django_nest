@@ -40,9 +40,21 @@ def Controller(name):
 def Get():
     def decorator(f):
         def get(self, request, *args, **kwargs):
-            return JsonResponse({"data": f(self, request, *args, **kwargs)})
+            response = f(self, request, *args, **kwargs)
+            print(response)
+            return JsonResponse({"data": response})
 
         return get
+
+    return decorator
+
+
+def Post():
+    def decorator(f):
+        def post(self, request, *args, **kwargs):
+            return JsonResponse({"data": f(self, request, *args, **kwargs)})
+
+        return post
 
     return decorator
 
